@@ -1,13 +1,16 @@
 package com.hao.mvp.counter
 
-import android.app.ProgressDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.hao.mvp.databinding.FragmentCounterBinding
+import org.koin.android.ext.android.get
+import org.koin.core.parameter.parametersOf
 
 /**
  *@date: 2022/11/19
@@ -17,12 +20,19 @@ import com.hao.mvp.databinding.FragmentCounterBinding
 internal class CounterFragment : Fragment(), ICounterView {
 
     override lateinit var presenter: ICounterPresenter
-    
-    private val dialog: ProgressDialog by lazy {
-        ProgressDialog.show(
-            context, "Loading",
-            "Please wait...", true
-        )
+
+    private var loadingDialog: AlertDialog? = null
+
+    private fun createLoadingDialog(): AlertDialog {
+        val progressIndicator = CircularProgressIndicator(requireContext()).apply {
+            isIndeterminate = true
+        }
+        return AlertDialog.Builder(requireContext())
+            .setTitle("Loading")
+            .setMessage("Please wait...")
+            .setView(progressIndicator)
+            .setCancelable(false)
+            .create()
     }
 
     private val mBinding by lazy {
@@ -44,8 +54,8 @@ internal class CounterFragment : Fragment(), ICounterView {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        presenter = CounterPresenter(this, lifecycleScope)
-        //Tip: add
+        // Use Koin to inject presenter
+        presenter = get { parametersOf(this, lifecycleScope) }
         lifecycle.addObserver(presenter)
         return mBinding.root
     }
@@ -64,11 +74,14 @@ internal class CounterFragment : Fragment(), ICounterView {
 
 
     override fun showLoading() {
-        dialog.show()
+        if (loadingDialog == null) {
+            loadingDialog = createLoadingDialog()
+        }
+        loadingDialog?.show()
     }
 
     override fun hideLoading() {
-        dialog.dismiss()
+        loadingDialog?.dismiss()
     }
 
 }
