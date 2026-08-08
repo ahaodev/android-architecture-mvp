@@ -53,7 +53,7 @@ internal class CounterFragment : Fragment(), ICounterView {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Use Koin to inject presenter
         presenter = get { parametersOf(this, lifecycleScope) }
         lifecycle.addObserver(presenter)
